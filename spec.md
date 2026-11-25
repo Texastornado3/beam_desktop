@@ -108,6 +108,13 @@ a floor beam or deck joist.
   results panel.
 - Include a File menu with Save and Open options. Both commands use native
   operating-system file selection dialogs.
+- Place Save Design, Open Design, and Export CSV buttons in one dedicated
+  application toolbar above the entire left-controls and right-results layout,
+  separate from the Matplotlib navigation toolbar.
+- Place bending and deflection PASS/FAIL results in a fixed panel directly
+  below the input controls, outside the scrollable input area. These results
+  must remain visible when the application window or Matplotlib canvas is
+  resized.
 - Save designs as Beam Designer JSON files. The saved data includes the beam
   support type, span, material, section, deflection limit, and every point
   and uniform load.

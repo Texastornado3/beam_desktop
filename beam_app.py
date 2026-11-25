@@ -58,10 +58,23 @@ class BeamDesignerApp:
         file_menu = tk.Menu(menubar, tearoff=False)
         file_menu.add_command(label="Save", accelerator="Ctrl+S", command=self.save_design)
         file_menu.add_command(label="Open", accelerator="Ctrl+O", command=self.open_design)
+        file_menu.add_command(label="Export CSV", command=self.export_results)
         menubar.add_cascade(label="File", menu=file_menu)
         self.root.config(menu=menubar)
         self.root.bind("<Control-s>", lambda event: self.save_design())
         self.root.bind("<Control-o>", lambda event: self.open_design())
+
+        self.app_toolbar = ttk.Frame(self.root)
+        self.app_toolbar.pack(side=tk.TOP, fill=tk.X, padx=8, pady=(6, 4))
+        ttk.Button(self.app_toolbar, text="Save Design", command=self.save_design).pack(
+            side=tk.LEFT, padx=(0, 4)
+        )
+        ttk.Button(self.app_toolbar, text="Open Design", command=self.open_design).pack(
+            side=tk.LEFT, padx=4
+        )
+        ttk.Button(self.app_toolbar, text="Export CSV", command=self.export_results).pack(
+            side=tk.LEFT, padx=4
+        )
 
         outer = ttk.Frame(self.root)
         outer.pack(fill=tk.BOTH, expand=True)
@@ -69,6 +82,9 @@ class BeamDesignerApp:
         controls_container = ttk.Frame(outer, width=330)
         controls_container.pack(side=tk.LEFT, fill=tk.Y)
         controls_container.pack_propagate(False)
+
+        self.checks_container = ttk.Frame(controls_container)
+        self.checks_container.pack(side=tk.BOTTOM, fill=tk.X, padx=6, pady=(2, 6))
 
         canvas_scroll = tk.Canvas(controls_container, highlightthickness=0)
         scrollbar = ttk.Scrollbar(controls_container, orient=tk.VERTICAL, command=canvas_scroll.yview)
@@ -86,7 +102,16 @@ class BeamDesignerApp:
         self.results.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
         self._create_controls()
+        self._create_check_cards()
         self._create_results()
+
+    def _create_check_cards(self) -> None:
+        cards_frame = ttk.Frame(self.checks_container)
+        cards_frame.pack(fill=tk.X)
+        self.bending_card = ttk.LabelFrame(cards_frame, text="Bending")
+        self.bending_card.pack(fill=tk.X, pady=(0, 4))
+        self.deflection_card = ttk.LabelFrame(cards_frame, text="Deflection")
+        self.deflection_card.pack(fill=tk.X)
 
     def _create_controls(self) -> None:
         support_frame = ttk.LabelFrame(self.controls, text="Beam")
@@ -190,13 +215,6 @@ class BeamDesignerApp:
         self.cursor_status = ttk.Label(status_frame, text="")
         self.cursor_status.pack(side=tk.LEFT)
 
-        cards_frame = ttk.Frame(self.results)
-        cards_frame.pack(fill=tk.X, padx=8, pady=(0, 8))
-        self.bending_card = ttk.LabelFrame(cards_frame, text="Bending")
-        self.bending_card.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 4))
-        self.deflection_card = ttk.LabelFrame(cards_frame, text="Deflection")
-        self.deflection_card.pack(side=tk.RIGHT, fill=tk.X, expand=True, padx=(4, 0))
-
         suggestion_frame = ttk.Frame(self.results)
         suggestion_frame.pack(fill=tk.X, padx=8, pady=(0, 8))
         self.suggestion_label = ttk.Label(suggestion_frame, text="")
@@ -207,14 +225,6 @@ class BeamDesignerApp:
         self.use_section_button.pack(side=tk.RIGHT)
         self.use_section_button.pack_forget()
         self._suggested_section = None
-
-        export_frame = ttk.Frame(self.results)
-        export_frame.pack(fill=tk.X, padx=8, pady=(0, 8))
-        ttk.Button(
-            export_frame,
-            text="Export CSV",
-            command=self.export_results,
-        ).pack(side=tk.RIGHT)
 
         self.canvas.mpl_connect("motion_notify_event", self._on_mouse_move)
         self.canvas.mpl_connect("button_press_event", self._on_drag_press)
