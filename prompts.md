@@ -1,0 +1,1 @@
+- 2026-11-24: Asked to update spec.md for a Python Tkinter and Matplotlib desktop app while preserving the engineering requirements, adapt web-specific interface requirements, follow AGENTS.md, and not build anything. Updated spec.md with desktop platform, Tkinter controls, embedded Matplotlib outputs, and desktop layout requirements; it worked.
