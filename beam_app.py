@@ -1,5 +1,6 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+import json
+from tkinter import ttk, messagebox, filedialog
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
@@ -16,6 +17,7 @@ from beam_core import (
     deflection_limit,
     lightest_passing_section,
 )
+from design_io import load_design, save_design, serialize_design
 
 
 ACCENT = "#2474a6"
@@ -47,6 +49,15 @@ class BeamDesignerApp:
         self.root.after_idle(self.refresh)
 
     def _create_layout(self) -> None:
+        menubar = tk.Menu(self.root)
+        file_menu = tk.Menu(menubar, tearoff=False)
+        file_menu.add_command(label="Save", accelerator="Ctrl+S", command=self.save_design)
+        file_menu.add_command(label="Open", accelerator="Ctrl+O", command=self.open_design)
+        menubar.add_cascade(label="File", menu=file_menu)
+        self.root.config(menu=menubar)
+        self.root.bind("<Control-s>", lambda event: self.save_design())
+        self.root.bind("<Control-o>", lambda event: self.open_design())
+
         outer = ttk.Frame(self.root)
         outer.pack(fill=tk.BOTH, expand=True)
 
@@ -236,6 +247,75 @@ class BeamDesignerApp:
             if self.section.get() not in names:
                 self.section.set("2x10")
         self.section_combo.configure(values=names)
+
+    def save_design(self) -> None:
+        path = filedialog.asksaveasfilename(
+            parent=self.root,
+            title="Save Beam Design",
+            defaultextension=".beam.json",
+            filetypes=[
+                ("Beam Designer JSON", "*.beam.json"),
+                ("JSON files", "*.json"),
+                ("All files", "*.*"),
+            ],
+        )
+        if not path:
+            return
+        try:
+            design = serialize_design(
+                self.support.get(),
+                self.span.get(),
+                self.material.get(),
+                self.section.get(),
+                self.deflection_option.get(),
+                self.point_loads,
+                self.uniform_loads,
+            )
+            save_design(path, design)
+        except (OSError, ValueError) as error:
+            messagebox.showerror(
+                "Save failed",
+                f"The beam design could not be saved:\n{error}",
+                parent=self.root,
+            )
+
+    def open_design(self) -> None:
+        path = filedialog.askopenfilename(
+            parent=self.root,
+            title="Open Beam Design",
+            filetypes=[
+                ("Beam Designer JSON", "*.beam.json"),
+                ("JSON files", "*.json"),
+                ("All files", "*.*"),
+            ],
+        )
+        if not path:
+            return
+        try:
+            design = load_design(path)
+        except (OSError, json.JSONDecodeError, ValueError) as error:
+            messagebox.showerror(
+                "Open failed",
+                f"The beam design could not be opened:\n{error}",
+                parent=self.root,
+            )
+            return
+
+        self.support.set(design["support"])
+        self.span.set(design["span_ft"])
+        self.material.set(design["material"])
+        self.section.set(design["section"])
+        self.deflection_option.set(design["deflection_limit"])
+        self.point_loads = list(design["point_loads"])
+        self.uniform_loads = list(design["uniform_loads"])
+
+        self._populate_sections()
+        self._building_controls = True
+        self.span_entry.delete(0, tk.END)
+        self.span_entry.insert(0, f"{self.span.get():g}")
+        self._building_controls = False
+        self._rebuild_load_editor()
+        self.refresh()
 
     def _add_point_dialog(self) -> None:
         position = self.span.get() / 2.0

@@ -98,6 +98,16 @@ a floor beam or deck joist.
 ## Desktop Interface
 - Open one resizable application window with a left controls panel and a right
   results panel.
+- Include a File menu with Save and Open options. Both commands use native
+  operating-system file selection dialogs.
+- Save designs as Beam Designer JSON files. The saved data includes the beam
+  support type, span, material, section, deflection limit, and every point
+  and uniform load.
+- Opening a valid saved design restores all saved inputs, rebuilds the load
+  list, and immediately recalculates and redraws the beam, diagrams, and
+  strength and deflection checks. Opening an invalid or unsupported file
+  leaves the current design unchanged and shows an error dialog.
+- Provide Ctrl+S for Save and Ctrl+O for Open as desktop keyboard shortcuts.
 - Keep controls in clearly grouped labeled frames. Use a vertical scrollbar
   for the left panel if the available height is small.
 - Place the beam drawing and diagrams in the right Matplotlib canvas.
@@ -141,6 +151,5 @@ a floor beam or deck joist.
 ## Out of scope
 - Self-weight, shear stress, lateral-torsional buckling, load
   combinations, and continuous beams.
-- Saving designs.
 - Building or implementing the application itself; this specification is
   documentation only.
