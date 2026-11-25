@@ -1,6 +1,7 @@
 import json
 import tempfile
 import unittest
+import csv
 from pathlib import Path
 
 from beam_core import PointLoad, UniformLoad
@@ -10,6 +11,7 @@ from design_io import (
     load_design,
     save_design,
     serialize_design,
+    export_results_csv,
 )
 
 
@@ -70,6 +72,31 @@ class DesignIoTests(unittest.TestCase):
             )
             with self.assertRaises(ValueError):
                 load_design(path)
+
+    def test_export_results_csv_headers_and_values(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "results.csv"
+            export_results_csv(
+                path,
+                [0.0, 10.0, 20.0],
+                [10.0, 0.0, -10.0],
+                [0.0, 50.0, 0.0],
+                [0.0, -0.609, 0.0],
+            )
+            with path.open("r", encoding="utf-8-sig", newline="") as file:
+                rows = list(csv.reader(file))
+
+        self.assertEqual(
+            rows[0],
+            [
+                "Position x (ft)",
+                "Shear V (kips)",
+                "Moment M (kip-ft)",
+                "Deflection y (inches)",
+            ],
+        )
+        self.assertEqual(len(rows), 4)
+        self.assertEqual(rows[2], ["10.000000", "0.000000", "50.000000", "-0.609000"])
 
 
 if __name__ == "__main__":

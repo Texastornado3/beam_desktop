@@ -17,7 +17,12 @@ from beam_core import (
     deflection_limit,
     lightest_passing_section,
 )
-from design_io import load_design, save_design, serialize_design
+from design_io import (
+    export_results_csv,
+    load_design,
+    save_design,
+    serialize_design,
+)
 
 
 ACCENT = "#2474a6"
@@ -203,6 +208,14 @@ class BeamDesignerApp:
         self.use_section_button.pack_forget()
         self._suggested_section = None
 
+        export_frame = ttk.Frame(self.results)
+        export_frame.pack(fill=tk.X, padx=8, pady=(0, 8))
+        ttk.Button(
+            export_frame,
+            text="Export CSV",
+            command=self.export_results,
+        ).pack(side=tk.RIGHT)
+
         self.canvas.mpl_connect("motion_notify_event", self._on_mouse_move)
         self.canvas.mpl_connect("button_press_event", self._on_drag_press)
         self.canvas.mpl_connect("button_release_event", self._on_drag_release)
@@ -316,6 +329,40 @@ class BeamDesignerApp:
         self._building_controls = False
         self._rebuild_load_editor()
         self.refresh()
+
+    def export_results(self) -> None:
+        path = filedialog.asksaveasfilename(
+            parent=self.root,
+            title="Export Beam Results",
+            defaultextension=".csv",
+            filetypes=[
+                ("CSV files", "*.csv"),
+                ("All files", "*.*"),
+            ],
+        )
+        if not path:
+            return
+        if not hasattr(self, "result"):
+            messagebox.showerror(
+                "Export failed",
+                "No beam results are available to export.",
+                parent=self.root,
+            )
+            return
+        try:
+            export_results_csv(
+                path,
+                self.result.x_ft,
+                self.result.shear,
+                self.result.moment,
+                self.result.deflection,
+            )
+        except (OSError, ValueError) as error:
+            messagebox.showerror(
+                "Export failed",
+                f"The beam results could not be exported:\n{error}",
+                parent=self.root,
+            )
 
     def _add_point_dialog(self) -> None:
         position = self.span.get() / 2.0

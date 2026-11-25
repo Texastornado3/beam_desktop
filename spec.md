@@ -92,6 +92,14 @@ a floor beam or deck joist.
   70-100%, red over 100%), and PASS or FAIL.
 - A line suggesting the lightest passing section, with a "Use section"
   button that applies it to the selected section.
+- Include an "Export CSV" button that uses a native operating-system Save
+  dialog. Export the currently displayed beam result table with one row per
+  calculated position and these column headers:
+  `Position x (ft),Shear V (kips),Moment M (kip-ft),Deflection y (inches)`
+- Write the CSV using comma separators, Excel-compatible UTF-8 encoding, and
+  Windows-style line endings. Values must reflect the current beam support,
+  span, loads, material, section, and deflection limit. The export does not
+  alter the beam calculations or saved design.
 - Everything updates immediately whenever any input changes. The display
   should avoid blocking or requiring a separate "Calculate" button.
 

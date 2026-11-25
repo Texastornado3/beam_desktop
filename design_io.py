@@ -1,5 +1,6 @@
 import json
 import math
+import csv
 from pathlib import Path
 from typing import Any
 
@@ -144,3 +145,30 @@ def load_design(path: str | Path) -> dict[str, Any]:
         "point_loads": point_loads,
         "uniform_loads": uniform_loads,
     }
+
+
+def export_results_csv(
+    path: str | Path,
+    x_ft,
+    shear,
+    moment,
+    deflection,
+) -> None:
+    destination = Path(path)
+    with destination.open("w", encoding="utf-8-sig", newline="") as file:
+        writer = csv.writer(file, lineterminator="\r\n")
+        writer.writerow([
+            "Position x (ft)",
+            "Shear V (kips)",
+            "Moment M (kip-ft)",
+            "Deflection y (inches)",
+        ])
+        for position, shear_value, moment_value, deflection_value in zip(
+            x_ft, shear, moment, deflection
+        ):
+            writer.writerow([
+                f"{float(position):.6f}",
+                f"{float(shear_value):.6f}",
+                f"{float(moment_value):.6f}",
+                f"{float(deflection_value):.6f}",
+            ])
