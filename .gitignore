@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+
+.venv/
+venv/
+env/
+ENV/
+
+test_beam.json
+test_pdf.pdf
+test_results.csv
