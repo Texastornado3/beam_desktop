@@ -23,6 +23,7 @@ from design_io import (
     save_design,
     serialize_design,
 )
+from pdf_export import export_calculation_pdf
 
 
 ACCENT = "#2474a6"
@@ -59,6 +60,7 @@ class BeamDesignerApp:
         file_menu.add_command(label="Save", accelerator="Ctrl+S", command=self.save_design)
         file_menu.add_command(label="Open", accelerator="Ctrl+O", command=self.open_design)
         file_menu.add_command(label="Export CSV", command=self.export_results)
+        file_menu.add_command(label="Export PDF", command=self.export_calculation_sheet)
         menubar.add_cascade(label="File", menu=file_menu)
         self.root.config(menu=menubar)
         self.root.bind("<Control-s>", lambda event: self.save_design())
@@ -75,6 +77,11 @@ class BeamDesignerApp:
         ttk.Button(self.app_toolbar, text="Export CSV", command=self.export_results).pack(
             side=tk.LEFT, padx=4
         )
+        ttk.Button(
+            self.app_toolbar,
+            text="Export PDF",
+            command=self.export_calculation_sheet,
+        ).pack(side=tk.LEFT, padx=4)
 
         outer = ttk.Frame(self.root)
         outer.pack(fill=tk.BOTH, expand=True)
@@ -374,6 +381,64 @@ class BeamDesignerApp:
                 parent=self.root,
             )
 
+    def export_calculation_sheet(self) -> None:
+        path = filedialog.asksaveasfilename(
+            parent=self.root,
+            title="Export PDF Calculation Sheet",
+            defaultextension=".pdf",
+            filetypes=[
+                ("PDF files", "*.pdf"),
+                ("All files", "*.*"),
+            ],
+        )
+        if not path:
+            return
+        if not hasattr(self, "result"):
+            messagebox.showerror(
+                "Export failed",
+                "No beam results are available to export.",
+                parent=self.root,
+            )
+            return
+
+        sections = STEEL_SECTIONS if self.material.get() == "Steel" else LUMBER_SECTIONS
+        selected_section = next(
+            item for item in sections if item["name"] == self.section.get()
+        )
+        section_properties = {
+            "E": 29000.0 if self.material.get() == "Steel" else 1600.0,
+            "Fb": 30.0 if self.material.get() == "Steel" else 0.900,
+            "Ix": selected_section["Ix"],
+            "Sx": selected_section["Sx"],
+        }
+        if "weight" in selected_section:
+            section_properties["weight"] = selected_section["weight"]
+        denominator = 240 if self.deflection_option.get() == "L/240" else 360
+        try:
+            export_calculation_pdf(
+                path,
+                support=self.support.get(),
+                span_ft=self.span.get(),
+                material=self.material.get(),
+                section=self.section.get(),
+                section_properties=section_properties,
+                point_loads=self.point_loads,
+                uniform_loads=self.uniform_loads,
+                result=self.result,
+                bending_stress_ksi=self.bending_stress_ksi,
+                bending_allowable_ksi=self.bending_allowable_ksi,
+                deflection_allowable_in=self.deflection_allowable_in,
+                bending_pass=self.bending_pass,
+                deflection_pass=self.deflection_pass,
+                deflection_denominator=denominator,
+            )
+        except (OSError, ValueError, RuntimeError) as error:
+            messagebox.showerror(
+                "Export failed",
+                f"The PDF calculation sheet could not be exported:\n{error}",
+                parent=self.root,
+            )
+
     def _add_point_dialog(self) -> None:
         position = self.span.get() / 2.0
         if self.support.get() == "Cantilever":
@@ -567,6 +632,11 @@ class BeamDesignerApp:
         deflection_ok = abs(result.max_deflection) <= limit
         bending_ok = bending <= Fb
 
+        self.bending_stress_ksi = bending
+        self.bending_allowable_ksi = Fb
+        self.deflection_allowable_in = limit
+        self.bending_pass = bending_ok
+        self.deflection_pass = deflection_ok
         self._update_cards(bending, Fb, bending_ok, abs(result.max_deflection), limit, deflection_ok)
         self._update_suggestion(result)
         self._draw(result, span)

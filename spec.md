@@ -100,6 +100,16 @@ a floor beam or deck joist.
   Windows-style line endings. Values must reflect the current beam support,
   span, loads, material, section, and deflection limit. The export does not
   alter the beam calculations or saved design.
+- Include a clearly visible "Export PDF" button next to "Export CSV". Use a
+  native Save dialog to create a professional, letter-sized PDF calculation
+  sheet with a white background, consistent fonts, readable labels, and
+  margins that prevent overlap or clipping. Include support type, span,
+  material, section properties, all applied loads, reactions, maximum shear,
+  maximum moment, maximum deflection, bending and deflection PASS/FAIL checks,
+  allowable values, and the formulas used. Include the beam drawing and the
+  shear, moment, and deflection diagrams. If the applied-load list exceeds
+  the space available on the calculation page, continue the complete list on
+  additional letter-sized pages.
 - Everything updates immediately whenever any input changes. The display
   should avoid blocking or requiring a separate "Calculate" button.
 
@@ -108,9 +118,9 @@ a floor beam or deck joist.
   results panel.
 - Include a File menu with Save and Open options. Both commands use native
   operating-system file selection dialogs.
-- Place Save Design, Open Design, and Export CSV buttons in one dedicated
-  application toolbar above the entire left-controls and right-results layout,
-  separate from the Matplotlib navigation toolbar.
+- Place Save Design, Open Design, Export CSV, and Export PDF buttons in one
+  dedicated application toolbar above the entire left-controls and
+  right-results layout, separate from the Matplotlib navigation toolbar.
 - Place bending and deflection PASS/FAIL results in a fixed panel directly
   below the input controls, outside the scrollable input area. These results
   must remain visible when the application window or Matplotlib canvas is

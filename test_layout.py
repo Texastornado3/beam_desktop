@@ -28,7 +28,16 @@ class LayoutTests(unittest.TestCase):
             except tk.TclError:
                 pass
         self.assertTrue(
-            {"Save Design", "Open Design", "Export CSV"}.issubset(labels)
+            {"Save Design", "Open Design", "Export CSV", "Export PDF"}.issubset(labels)
+        )
+        button_labels = [
+            child.cget("text")
+            for child in self.app.app_toolbar.winfo_children()
+            if isinstance(child, tk.Widget) and child.winfo_class() == "TButton"
+        ]
+        self.assertEqual(
+            button_labels.index("Export PDF"),
+            button_labels.index("Export CSV") + 1,
         )
 
     def test_check_cards_are_in_fixed_control_panel(self):
